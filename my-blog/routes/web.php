@@ -16,7 +16,7 @@ Route::get('/', function() {
     return redirect()->route('login');
 });
 
-Route::resource('articles', 'ArticleController');
+
 
 
 Auth::routes();
