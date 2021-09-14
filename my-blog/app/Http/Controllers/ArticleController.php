@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Article;
-use App\Category;
+use App\Models\Article;
+use App\Models\Category;
+use Illuminate\Database\Eloquent\Model;
 use App\Http\Requests\StoreArticleRequest;
-use App\Tag;
+use App\Models\Tag;
 
 
 class ArticleController extends Controller

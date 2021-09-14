@@ -5,14 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Spatie\MediaLibrary\HasMedia\HasMediaTrait;
-use Spatie\MediaLibrary\HasMedia\HasMedia;
-use Spatie\MediaLibrary\Models\Media;
 
-class Article extends Model implements HasMedia
+class Article extends Model 
 {
     use SoftDeletes;
-    use HasMediaTrait;
+    
 
     protected $fillable = ['user_id', 'title', 'article_text'];
 

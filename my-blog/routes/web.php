@@ -16,7 +16,7 @@ Route::get('/', function() {
     return redirect()->route('articles.index');
 });
 
-Route::resource('articles', 'ArticleController');
+Route::resource('articles', 'App\Http\Controllers\ArticleController');
 
 Auth::routes();
 
