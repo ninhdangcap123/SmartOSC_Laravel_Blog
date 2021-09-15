@@ -3,6 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Article;
+use App\Models\Category;
+use Illuminate\Database\Eloquent\Model;
+use App\Http\Requests\StoreArticleRequest;
+use App\Models\Tag;
+
 
 class ArticleController extends Controller
 {
@@ -13,7 +19,7 @@ class ArticleController extends Controller
      */
     public function index()
     {
-        $articles = Article::with(['categories', 'tags', 'author'])
+        $articles = Article::getArticlesByDetails()
             ->when(request('category_id'), function($query) {
                 return $query->whereHas('categories', function($q) {
                     return $q->where('id', request('category_id'));
@@ -29,9 +35,9 @@ class ArticleController extends Controller
             })
             ->orderBy('id', 'desc')
             ->paginate(3);
-        $all_categories = Category::all();
-        $all_tags = Tag::all();
-        return view('articles.index', compact('articles', 'all_categories', 'all_tags'));
+        $allCategories = Category::all();
+        $allTags = Tag::all();
+        return view('articles.index', compact('articles', 'allCategories', 'allTags'));
     }
 
     /**
@@ -41,8 +47,7 @@ class ArticleController extends Controller
      */
     public function create()
     {
-        $categories = Category::orderBy('name')->get();
-        return view('articles.create', compact('categories'));
+        
     }
 
     /**
@@ -51,25 +56,21 @@ class ArticleController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreArticleRequest $request)
+    public function store(Request $request)
     {
-        $article = Article::create($request->all() + ['user_id' => auth()->id()]);
+        $article = Article::create($request->validated() + ['user_id' => auth()->id()]);
 
-        if (isset($request->categories)) {
+        if (isset($request->categories) || !empty($request->categories)) {
             $article->categories()->attach($request->categories);
         }
 
-        if ($request->tags != '') {
+        if ($request->tags != '' || $request->tags != null) {
             $tags = explode(',', $request->tags);
             foreach ($tags as $tag_name) {
                 $tag = Tag::firstOrCreate(['name' => $tag_name]);
                 $article->tags()->attach($tag);
             }
-        }
-
-        if ($request->hasFile('main_image')) {
-            $article->addMediaFromRequest('main_image')->toMediaCollection('main_images');
-        }
+        }        
 
         return redirect()->route('articles.index');
     }
@@ -77,25 +78,25 @@ class ArticleController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Article  $article
+     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show(Article $article)
+    public function show($id)
     {
         $article->load(['categories', 'tags', 'author']);
-        $all_categories = Category::all();
-        $all_tags = Tag::all();
+        $allCategories = Category::all();
+        $allTags = Tag::all();
 
-        return view('articles.show', compact('article', 'all_categories', 'all_tags'));
+        return view('articles.show', compact('article', 'allCategories', 'allTags'));
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Article  $article
+     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit(Article $article)
+    public function edit($id)
     {
         //
     }
@@ -104,10 +105,10 @@ class ArticleController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Article  $article
+     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Article $article)
+    public function update(Request $request, $id)
     {
         //
     }
@@ -115,10 +116,10 @@ class ArticleController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Article  $article
+     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Article $article)
+    public function destroy($id)
     {
         //
     }

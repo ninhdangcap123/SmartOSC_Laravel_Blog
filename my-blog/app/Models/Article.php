@@ -5,14 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Spatie\MediaLibrary\HasMedia\HasMediaTrait;
-use Spatie\MediaLibrary\HasMedia\HasMedia;
-use Spatie\MediaLibrary\Models\Media;
 
-class Article extends Model implements HasMedia
+class Article extends Model 
 {
     use SoftDeletes;
-    use HasMediaTrait;
+    
 
     protected $fillable = ['user_id', 'title', 'article_text'];
 
@@ -33,35 +30,37 @@ class Article extends Model implements HasMedia
 
     public function getCategoriesLinksAttribute()
     {
-        $categories = $this->categories()->get()->map(function($category) {
-            return '<a href="'.route('articles.index').'?category_id='.$category->id.'">'.$category->name.'</a>';
+        $categories = $this->categories()->get()->map(function($category) 
+        {
+            $categoryID = $category->id;
+            $categoryName = $category->name;
+            return route('articles.index')->with('categoryID','categoryName');
         })->implode(' | ');
 
-        if ($categories == '') return 'none';
+        if ($categories == '' || $categories == null) return 'none';
 
         return $categories;
     }
 
     public function getTagsLinksAttribute()
     {
-        $tags = $this->tags()->get()->map(function($tag) {
-            return '<a href="'.route('articles.index').'?tag_id='.$tag->id.'">'.$tag->name.'</a>';
+        $tags = $this->tags()->get()->map(function($tag)
+        {
+            $tagID = $tag->id;
+            $tagName = $tag->name;
+            return route('articles.index')->with('tagID', 'tagName');
         })->implode(' | ');
 
-        if ($tags == '') return 'none';
+        if ($tags == '' || $tags == null) return 'none';
 
         return $tags;
     }
 
-    public function registerMediaConversions(Media $media = null)
+    
+    public function getArticlesByDetails()
     {
-        $this->addMediaConversion('thumb')
-            ->width(200)
-            ->height(200);
-
-        $this->addMediaConversion('main')
-            ->width(600)
-            ->height(200);
+        $articles = $this->articles()->with(['categories', 'tags', 'author']);
+        return $articles;
     }
 
 }
