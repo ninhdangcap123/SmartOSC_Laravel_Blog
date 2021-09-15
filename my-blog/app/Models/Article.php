@@ -34,7 +34,7 @@ class Article extends Model
         {
             $categoryID = $category->id;
             $categoryName = $category->name;
-            return $categoryName, $categoryID;
+            return route('articles.index').$categoryID.$categoryName;
         })->implode(' | ');
 
         if ($categories == '' || $categories == null) return 'none';
@@ -48,7 +48,7 @@ class Article extends Model
         {
             $tagID = $tag->id;
             $tagName = $tag->name;
-            return $tagID, $tagName;
+            return route('articles.index').$tagID.$tagName;
         })->implode(' | ');
 
         if ($tags == '' || $tags == null) return 'none';
