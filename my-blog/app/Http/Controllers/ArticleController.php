@@ -19,7 +19,7 @@ class ArticleController extends Controller
      */
     public function index()
     {
-        $articles = Article::with(['categories', 'tags', 'author'])
+        $articles = Article::getArticlesByDetails()
             ->when(request('category_id'), function($query) {
                 return $query->whereHas('categories', function($q) {
                     return $q->where('id', request('category_id'));
@@ -47,8 +47,7 @@ class ArticleController extends Controller
      */
     public function create()
     {
-        $categories = Category::orderBy('name')->get();
-        return view('articles.create', compact('categories'));
+        
     }
 
     /**
@@ -59,9 +58,9 @@ class ArticleController extends Controller
      */
     public function store(Request $request)
     {
-        $article = Article::create($request->validate() + ['user_id' => auth()->id()]);
+        $article = Article::create($request->validated() + ['user_id' => auth()->id()]);
 
-        if (isset($request->categories)) {
+        if (isset($request->categories) || !empty($request->categories)) {
             $article->categories()->attach($request->categories);
         }
 
@@ -71,11 +70,7 @@ class ArticleController extends Controller
                 $tag = Tag::firstOrCreate(['name' => $tag_name]);
                 $article->tags()->attach($tag);
             }
-        }
-
-        if ($request->hasFile('main_image')) {
-            $article->addMediaFromRequest('main_image')->toMediaCollection('main_images');
-        }
+        }        
 
         return redirect()->route('articles.index');
     }
