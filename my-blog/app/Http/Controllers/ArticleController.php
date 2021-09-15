@@ -35,9 +35,9 @@ class ArticleController extends Controller
             })
             ->orderBy('id', 'desc')
             ->paginate(3);
-        $all_categories = Category::all();
-        $all_tags = Tag::all();
-        return view('articles.index', compact('articles', 'all_categories', 'all_tags'));
+        $allCategories = Category::all();
+        $allTags = Tag::all();
+        return view('articles.index', compact('articles', 'allCategories', 'allTags'));
     }
 
     /**
@@ -59,13 +59,13 @@ class ArticleController extends Controller
      */
     public function store(Request $request)
     {
-        $article = Article::create($request->all() + ['user_id' => auth()->id()]);
+        $article = Article::create($request->validate() + ['user_id' => auth()->id()]);
 
         if (isset($request->categories)) {
             $article->categories()->attach($request->categories);
         }
 
-        if ($request->tags != '') {
+        if ($request->tags != '' || $request->tags != null) {
             $tags = explode(',', $request->tags);
             foreach ($tags as $tag_name) {
                 $tag = Tag::firstOrCreate(['name' => $tag_name]);
@@ -89,10 +89,10 @@ class ArticleController extends Controller
     public function show($id)
     {
         $article->load(['categories', 'tags', 'author']);
-        $all_categories = Category::all();
-        $all_tags = Tag::all();
+        $allCategories = Category::all();
+        $allTags = Tag::all();
 
-        return view('articles.show', compact('article', 'all_categories', 'all_tags'));
+        return view('articles.show', compact('article', 'allCategories', 'allTags'));
     }
 
     /**

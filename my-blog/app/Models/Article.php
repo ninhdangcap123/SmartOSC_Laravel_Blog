@@ -45,7 +45,7 @@ class Article extends Model
             return '<a href="'.route('articles.index').'?tag_id='.$tag->id.'">'.$tag->name.'</a>';
         })->implode(' | ');
 
-        if ($tags == '') return 'none';
+        if ($tags == '' || $tags == null) return 'none';
 
         return $tags;
     }
