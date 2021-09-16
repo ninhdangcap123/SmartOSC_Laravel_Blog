@@ -16,7 +16,7 @@
 
     <div class="card-body">
         <ul>
-            @foreach ($all_categories as $category)
+            @foreach ($allCategories as $category)
                 <li>
                     <a href="{{ route('articles.index') }}?category_id={{ $category->id }}">{{ $category->name }}</a>
                 </li>
@@ -32,7 +32,7 @@
 
     <div class="card-body">
         <ul>
-            @foreach ($all_tags as $tag)
+            @foreach ($allTags as $tag)
                 <li>
                     <a href="{{ route('articles.index') }}?tag_id={{ $tag->id }}">{{ $tag->name }}</a>
                 </li>
