@@ -2,65 +2,35 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+
 
 class Article extends Model 
 {
-    use SoftDeletes;
-    
+    protected $guarded = ['created_at', 'updated_at'];
 
-    protected $fillable = ['user_id', 'title', 'article_text'];
+    protected $dates = [
+        'published_at',
+    ];
 
-    public function author()
-    {
-        return $this->belongsTo(User::class, 'user_id');
+    public function category(){
+        return $this->belongsTo('App\Models\Category');
     }
 
-    public function categories()
+    public function user()
     {
-        return $this->belongsToMany(Category::class);
+        return $this->belongsTo('App\Models\User');
     }
 
     public function tags()
     {
-        return $this->belongsToMany(Tag::class);
+        return $this->belongsToMany('App\Models\Tag');
     }
-
-    public function getCategoriesLinksAttribute()
+    public function getArticlesByPaginate($params)
     {
-        $categories = $this->categories()->get()->map(function($category) 
-        {
-            $categoryID = $category->id;
-            $categoryName = $category->name;
-            return route('articles.index')->with('categoryID','categoryName');
-        })->implode(' | ');
-
-        if ($categories == '' || $categories == null) return 'none';
-
-        return $categories;
-    }
-
-    public function getTagsLinksAttribute()
-    {
-        $tags = $this->tags()->get()->map(function($tag)
-        {
-            $tagID = $tag->id;
-            $tagName = $tag->name;
-            return route('articles.index')->with('tagID', 'tagName');
-        })->implode(' | ');
-
-        if ($tags == '' || $tags == null) return 'none';
-
-        return $tags;
-    }
-
-    
-    public function getArticlesByDetails()
-    {
-        $articles = $this->articles()->with(['categories', 'tags', 'author']);
-        return $articles;
+        $query = $this->orderBy('created_at', 'DESC')->paginate($params);
+        return $query;
     }
 
 }

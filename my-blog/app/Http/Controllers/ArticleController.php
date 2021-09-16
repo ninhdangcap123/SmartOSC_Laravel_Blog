@@ -8,6 +8,9 @@ use App\Models\Category;
 use Illuminate\Database\Eloquent\Model;
 use App\Http\Requests\StoreArticleRequest;
 use App\Models\Tag;
+use Carbon\Carbon;
+use Illuminate\Support\Str;
+use Session;
 
 
 class ArticleController extends Controller
@@ -19,25 +22,8 @@ class ArticleController extends Controller
      */
     public function index()
     {
-        $articles = Article::getArticlesByDetails()
-            ->when(request('category_id'), function($query) {
-                return $query->whereHas('categories', function($q) {
-                    return $q->where('id', request('category_id'));
-                });
-            })
-            ->when(request('tag_id'), function($query) {
-                return $query->whereHas('tags', function($q) {
-                    return $q->where('id', request('tag_id'));
-                });
-            })
-            ->when(request('query'), function($query) {
-                return $query->where('title', 'like', '%'.request('query').'%');
-            })
-            ->orderBy('id', 'desc')
-            ->paginate(3);
-        $allCategories = Category::all();
-        $allTags = Tag::all();
-        return view('articles.index', compact('articles', 'allCategories', 'allTags'));
+        $articles = Article::getArticlesByPaginate(20);
+        return view('admin.article.index', compact('articles'));
     }
 
     /**
@@ -47,7 +33,9 @@ class ArticleController extends Controller
      */
     public function create()
     {
-        
+        $tags = Tag::all();
+        $categories = Category::all();
+        return view('admin.article.create', compact(['categories', 'tags']));
     }
 
     /**
@@ -58,69 +46,110 @@ class ArticleController extends Controller
      */
     public function store(Request $request)
     {
-        $article = Article::create($request->validated() + ['user_id' => auth()->id()]);
+        $this->validate($request, [
+            'title' => 'required|unique:articles,title',
+            'image' => 'required|image',
+            'description' => 'required',
+            'category' => 'required',
+        ]);
 
-        if (isset($request->categories) || !empty($request->categories)) {
-            $article->categories()->attach($request->categories);
+        $article = Article::create([
+            'title' => $request->title,
+            'slug' => Str::slug($request->title),
+            'image' => 'image.jpg',
+            'description' => $request->description,
+            'category_id' => $request->category,
+            'user_id' => auth()->user()->id,
+            'published_at' => Carbon::now(),
+        ]);
+
+        $article->tags()->attach($request->tags);
+
+        if($request->hasFile('image')){
+            $image = $request->image;
+            $image_new_name = time() . '.' . $image->getClientOriginalExtension();
+            $image->move('storage/article/', $image_new_name);
+            $article->image = '/storage/article/' . $image_new_name;
+            $article->save();
         }
 
-        if ($request->tags != '' || $request->tags != null) {
-            $tags = explode(',', $request->tags);
-            foreach ($tags as $tag_name) {
-                $tag = Tag::firstOrCreate(['name' => $tag_name]);
-                $article->tags()->attach($tag);
-            }
-        }        
-
-        return redirect()->route('articles.index');
+        
+        return redirect()->back();
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param  \App\Model\Article  $article
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Article $article)
     {
-        $article->load(['categories', 'tags', 'author']);
-        $allCategories = Category::all();
-        $allTags = Tag::all();
-
-        return view('articles.show', compact('article', 'allCategories', 'allTags'));
+        return view('admin.article.show', compact('article'));
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
+     * @param  \App\Model\Article  $article
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(Article $article)
     {
-        //
+        $tags = Tag::all();
+        $categories = Category::all();
+        return view('admin.article.edit', compact(['article', 'categories', 'tags']));
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param  \App\Model\Article  $article
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Article $article)
     {
-        //
+        $this->validate($request, [
+            'title' => "required|unique:articles,title, $article->id",
+            'description' => 'required',
+            'category' => 'required',
+        ]);
+        
+        $article->title = $request->title;
+        $article->slug = Str::slug($request->title);
+        $article->description = $request->description;
+        $article->category_id = $request->category;
+
+        $article->tags()->sync($request->tags);
+
+        if($request->hasFile('image')){
+            $image = $request->image;
+            $image_new_name = time() . '.' . $image->getClientOriginalExtension();
+            $image->move('storage/article/', $image_new_name);
+            $article->image = '/storage/article/' . $image_new_name;
+        }
+
+        $article->save();        
+        return redirect()->back();
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param  \App\Model\Article  $article
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Article $article)
     {
-        //
+        if($article){
+            if(file_exists(public_path($article->image))){
+                unlink(public_path($article->image));
+            }
+
+            $article->delete();            
+        }
+
+        return redirect()->back();
     }
 }
