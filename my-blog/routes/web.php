@@ -19,6 +19,8 @@ Auth::routes();
 Route::group(['prefix' => 'admin', 'middleware' => ['auth']], function () {
     
     Route::resource('article', 'app\Http\Controller\ArticleController');
+    Route::resource('category', 'app\Http\Controller\CategoryController');
+    Route::resource('tag', 'app\Http\Controller\TagsController');
     
 });
 
