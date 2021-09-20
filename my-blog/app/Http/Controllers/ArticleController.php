@@ -63,17 +63,15 @@ class ArticleController extends Controller
             'published_at' => Carbon::now(),
         ]);
 
-        $article->tags()->attach($request->tags);
+        $article = Article::attachTagsToArticles($request->tags);
 
         if($request->hasFile('image')){
-            $image = $request->image;
-            $image_new_name = time() . '.' . $image->getClientOriginalExtension();
-            $image->move('storage/article/', $image_new_name);
-            $article->image = '/storage/article/' . $image_new_name;
-            $article->save();
+            
+            $article->image = Storage::putFile('image', $request->file('image'));
+           
         }
 
-        
+        $article->save();
         return redirect()->back();
     }
 
@@ -83,7 +81,7 @@ class ArticleController extends Controller
      * @param  \App\Model\Article  $article
      * @return \Illuminate\Http\Response
      */
-    public function show(Article $article)
+    public function show($id)
     {
         return view('admin.article.show', compact('article'));
     }
@@ -94,7 +92,7 @@ class ArticleController extends Controller
      * @param  \App\Model\Article  $article
      * @return \Illuminate\Http\Response
      */
-    public function edit(Article $article)
+    public function edit($id)
     {
         $tags = Tag::all();
         $categories = Category::all();
@@ -108,7 +106,7 @@ class ArticleController extends Controller
      * @param  \App\Model\Article  $article
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Article $article)
+    public function update(Request $request, $id)
     {
         $this->validate($request, [
             'title' => "required|unique:articles,title, $article->id",
@@ -121,13 +119,11 @@ class ArticleController extends Controller
         $article->description = $request->description;
         $article->category_id = $request->category;
 
-        $article->tags()->sync($request->tags);
+        $article = Article::syncTagsToArticles($request->tags);
 
         if($request->hasFile('image')){
-            $image = $request->image;
-            $image_new_name = time() . '.' . $image->getClientOriginalExtension();
-            $image->move('storage/article/', $image_new_name);
-            $article->image = '/storage/article/' . $image_new_name;
+            
+            $article->image = Storage::putFile('image', $request->file('image'));
         }
 
         $article->save();        
@@ -140,7 +136,7 @@ class ArticleController extends Controller
      * @param  \App\Model\Article  $article
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Article $article)
+    public function destroy($id)
     {
         if($article){
             if(file_exists(public_path($article->image))){

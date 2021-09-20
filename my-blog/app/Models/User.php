@@ -41,4 +41,11 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function getUsersByPaginate($params)
+    {
+        $query = $this->orderBy('created_at', 'DESC')->paginate($params);
+        return $query;
+    }
+
 }
