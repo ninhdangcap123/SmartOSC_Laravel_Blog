@@ -63,7 +63,7 @@ class ArticleController extends Controller
             'published_at' => Carbon::now(),
         ]);
 
-        $article->tags()->attach($request->tags);
+        $article = Article::attachTagsToArticles($request->tags);
 
         if($request->hasFile('image')){
             
@@ -119,7 +119,7 @@ class ArticleController extends Controller
         $article->description = $request->description;
         $article->category_id = $request->category;
 
-        $article->tags()->sync($request->tags);
+        $article = Article::syncTagsToArticles($request->tags);
 
         if($request->hasFile('image')){
             

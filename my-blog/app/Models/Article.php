@@ -32,5 +32,15 @@ class Article extends Model
         $query = $this->orderBy('created_at', 'DESC')->paginate($params);
         return $query;
     }
+    public function attachTagsToArticles($params)
+    {
+        $attach = $this->tags()->attach($params);
+        return $attach;
+    }
+    public function syncTagsToArticles($params)
+    {
+        $sync = $this->tags()->sync($params);
+        return $sync;
+    }
 
 }
