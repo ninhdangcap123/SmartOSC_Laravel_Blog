@@ -2,10 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Tags;
 use Illuminate\Http\Request;
 
 class TagsController extends Controller
 {
+    private $tagModel;
+
+    public function __construct(Tags $tag)
+    {
+        $this->tagModel = $tag;
+    }
     /**
      * Display a listing of the resource.
      *
@@ -13,7 +20,7 @@ class TagsController extends Controller
      */
     public function index()
     {
-        $tags = Tag::getTagsByPaginate(20);
+        $tags = (new \App\Models\Tags)->getTagsByPaginate(20);
         return view('admin.tag.index', compact('tags'));
     }
 
@@ -30,8 +37,9 @@ class TagsController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
+     * @throws \Illuminate\Validation\ValidationException
      */
     public function store(Request $request)
     {
@@ -44,7 +52,7 @@ class TagsController extends Controller
             'slug' => Str::slug($request->name, '-'),
             'description' => $request->description,
         ]);
-        
+
         return redirect()->back();
     }
 
@@ -73,9 +81,10 @@ class TagsController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
      * @return \Illuminate\Http\Response
+     * @throws \Illuminate\Validation\ValidationException
      */
     public function update(Request $request, $id)
     {
@@ -87,7 +96,7 @@ class TagsController extends Controller
         $tag->slug = Str::slug($request->name, '-');
         $tag->description = $request->description;
         $tag->save();
-        
+
         return redirect()->back();
     }
 
@@ -100,7 +109,7 @@ class TagsController extends Controller
     public function destroy($id)
     {
         if($tag){
-            $tag->delete();            
+            $tag->delete();
         }
 
         return redirect()->back();

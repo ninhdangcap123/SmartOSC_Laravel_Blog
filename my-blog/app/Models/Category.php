@@ -12,7 +12,10 @@ class Category extends Model
 
     public function getCategoryByPaginate($params)
     {
-        $query = $this->orderBy('created_at', 'DESC')->paginate($params);
-        return $query;
+        return $this->orderBy('created_at', 'DESC')->paginate($params);
+    }
+    public function getCategoryByNum($params)
+    {
+        return $this->take($params)->get();
     }
 }

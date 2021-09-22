@@ -15,7 +15,6 @@ class Tags extends Model
     }
     public function getTagsByPaginate($params)
     {
-        $query = $this->orderBy('created_at', 'DESC')->paginate($params);
-        return $query;
+        return $this->orderBy('created_at', 'DESC')->paginate($params);
     }
 }

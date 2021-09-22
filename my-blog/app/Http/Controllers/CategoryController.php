@@ -9,6 +9,12 @@ use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
+    private $categoryModel;
+
+    public function __construct(Category $category)
+    {
+        $this->categoryModel = $category;
+    }
     /**
      * Display a listing of the resource.
      *
@@ -16,7 +22,7 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $categories = Category::getCategoryByPaginate(20);
+        $categories = (new \App\Models\Category)->getCategoryByPaginate(20);
         return view('admin.category.index', compact('categories'));
     }
 
@@ -24,6 +30,7 @@ class CategoryController extends Controller
      * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response
+     * @throws \Illuminate\Validation\ValidationException
      */
     public function create()
     {
@@ -36,7 +43,7 @@ class CategoryController extends Controller
             'slug' => Str::slug($request->name, '-'),
             'description' => $request->description,
         ]);
-        
+
         return redirect()->back();
     }
 
@@ -76,9 +83,10 @@ class CategoryController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
      * @return \Illuminate\Http\Response
+     * @throws \Illuminate\Validation\ValidationException
      */
     public function update(Request $request, $id)
     {
@@ -90,7 +98,7 @@ class CategoryController extends Controller
         $category->slug = Str::slug($request->name, '-');
         $category->description = $request->description;
         $category->save();
-        
+
         return redirect()->back();
     }
 
@@ -102,15 +110,9 @@ class CategoryController extends Controller
      */
     public function destroy($id)
     {
-        $this->validate($request, [
-            'name' => "required|unique:categories,name,$category->id",
-        ]);
+        if($category){
+            $category->delete();
 
-        $category->name = $request->name;
-        $category->slug = Str::slug($request->name, '-');
-        $category->description = $request->description;
-        $category->save();
-        
-        return redirect()->back();
+            return redirect()->route('category.index');
     }
 }
