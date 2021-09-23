@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreArticleRequest;
+use App\Http\Requests\ArticlesStoreRequest;
+use App\Http\Requests\ArticlesUpdateRequest;
 use App\Models\Article;
 use App\Models\Category;
 use App\Models\Tags;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use Session;
@@ -48,45 +48,31 @@ class ArticleController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param Request $request
+     * @param ArticlesStoreRequest $request
      * @return Response
-     * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request)
+    public function store(ArticlesStoreRequest $request)
     {
-        $this->validate($request, [
-            'title' => 'required|unique:articles,title',
-            'image' => 'required|image',
-            'description' => 'required',
-            'category' => 'required',
-        ]);
-
-        $article = Article::create([
-            'title' => $request->title,
+        $this->articleModel->create( $request->validated(), [
             'slug' => Str::slug($request->title),
-            'image' => 'image.jpg',
-            'description' => $request->description,
-            'category_id' => $request->category,
             'user_id' => auth()->user()->id,
             'published_at' => Carbon::now(),
         ]);
 
-        $article = (new \App\Models\Article)->attachTagsToArticles($request->tags);
+        $this->articleModel->attachTagsToArticles($request->tags);
 
         if ($request->hasFile('image')) {
 
-            $article->image = Storage::putFile('image', $request->file('image'));
-
+            $this->uploadFile($request->validated(['image']));
         }
-
-        $article->save();
+        $this->articleModel->save();
         return redirect()->back();
     }
 
     /**
      * Display the specified resource.
      *
-     * @param \App\Model\Article $article
+     * @param $id
      * @return Response
      */
     public function show($id)
@@ -97,7 +83,7 @@ class ArticleController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param \App\Model\Article $article
+     * @param $id
      * @return Response
      */
     public function edit($id)
@@ -109,50 +95,41 @@ class ArticleController extends Controller
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param Request $request
-     * @param \App\Model\Article $article
+     * @paraw int $id
+     * @param ArticlesUpdateRequest $request
+     * @param $id
      * @return Response
-     * @throws \Illuminate\Validation\ValidationException
      */
-    protected function update(Request $request, $id)
+    protected function update(ArticlesUpdateRequest $request, $id)
     {
-        $this->validate($request, [
-            'title' => "required|unique:articles,title, $article->id",
-            'description' => 'required',
-            'category' => 'required',
-        ]);
 
-        $article->title = $request->title;
-        $article->slug = Str::slug($request->title);
-        $article->description = $request->description;
-        $article->category_id = $request->category;
+        $this->articleModel->create($request->validated());
 
-        $article = (new \App\Models\Article)->syncTagsToArticles($request->tags);
+        $this->articleModel->syncTagsToArticles($request->tags);
 
         if ($request->hasFile('image')) {
 
-            $article->image = Storage::putFile('image', $request->file('image'));
+            $this->uploadFile($request->validated(['image']));
         }
 
-        $article->save();
+        $this->articleModel->save();
         return redirect()->back();
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param \App\Model\Article $article
+     * @param $id
      * @return Response
      */
-    public function destroy($id)
-    {
-        if ($article) {
-            if (file_exists(public_path($article->image))) {
-                unlink(public_path($article->image));
+    public function destroy($id)    {
+
+        if ($this->articleModel) {
+            if (file_exists(public_path($this->articleModel->image))) {
+                unlink(public_path($this->articleModel->image));
             }
 
-            $article->delete();
+            $this->articleModel->delete();
         }
 
         return redirect()->back();
