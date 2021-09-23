@@ -2,84 +2,78 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\ArticlesStoreRequest;
+use App\Http\Requests\ArticlesUpdateRequest;
 use App\Models\Article;
 use App\Models\Category;
-use Illuminate\Database\Eloquent\Model;
-use App\Http\Requests\StoreArticleRequest;
-use App\Models\Tag;
+use App\Models\Tags;
 use Carbon\Carbon;
+use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use Session;
 
 
 class ArticleController extends Controller
 {
+    private $articleModel;
+
+    public function __construct(Article $article)
+    {
+        $this->articleModel = $article;
+    }
+
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
-        $articles = Article::getArticlesByPaginate(20);
+        $articles = (new \App\Models\Article)->getArticlesByPaginate(20);
         return view('admin.article.index', compact('articles'));
     }
 
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function create()
     {
-        $tags = Tag::all();
-        $categories = Category::all();
+        $tags = (new App\Models\Tags)->all();
+        $categories = (new App\Models\Category)->all();
         return view('admin.article.create', compact(['categories', 'tags']));
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param ArticlesStoreRequest $request
+     * @return Response
      */
-    public function store(Request $request)
+    public function store(ArticlesStoreRequest $request)
     {
-        $this->validate($request, [
-            'title' => 'required|unique:articles,title',
-            'image' => 'required|image',
-            'description' => 'required',
-            'category' => 'required',
-        ]);
-
-        $article = Article::create([
-            'title' => $request->title,
+        $this->articleModel->create( $request->validated(), [
             'slug' => Str::slug($request->title),
-            'image' => 'image.jpg',
-            'description' => $request->description,
-            'category_id' => $request->category,
             'user_id' => auth()->user()->id,
             'published_at' => Carbon::now(),
         ]);
 
-        $article = Article::attachTagsToArticles($request->tags);
+        $this->articleModel->attachTagsToArticles($request->tags);
 
-        if($request->hasFile('image')){
-            
-            $article->image = Storage::putFile('image', $request->file('image'));
-           
+        if ($request->hasFile('image')) {
+
+            $this->uploadFile($request->validated(['image']));
         }
-
-        $article->save();
+        $this->articleModel->save();
         return redirect()->back();
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  \App\Model\Article  $article
-     * @return \Illuminate\Http\Response
+     * @param $id
+     * @return Response
      */
     public function show($id)
     {
@@ -89,61 +83,53 @@ class ArticleController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Model\Article  $article
-     * @return \Illuminate\Http\Response
+     * @param $id
+     * @return Response
      */
     public function edit($id)
     {
-        $tags = Tag::all();
-        $categories = Category::all();
+        $tags = (new App\Models\Tags)->all();
+        $categories = (new App\Models\Category)->all();
         return view('admin.article.edit', compact(['article', 'categories', 'tags']));
     }
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Model\Article  $article
-     * @return \Illuminate\Http\Response
+     * @paraw int $id
+     * @param ArticlesUpdateRequest $request
+     * @param $id
+     * @return Response
      */
-    public function update(Request $request, $id)
+    protected function update(ArticlesUpdateRequest $request, $id)
     {
-        $this->validate($request, [
-            'title' => "required|unique:articles,title, $article->id",
-            'description' => 'required',
-            'category' => 'required',
-        ]);
-        
-        $article->title = $request->title;
-        $article->slug = Str::slug($request->title);
-        $article->description = $request->description;
-        $article->category_id = $request->category;
 
-        $article = Article::syncTagsToArticles($request->tags);
+        $this->articleModel->create($request->validated());
 
-        if($request->hasFile('image')){
-            
-            $article->image = Storage::putFile('image', $request->file('image'));
+        $this->articleModel->syncTagsToArticles($request->tags);
+
+        if ($request->hasFile('image')) {
+
+            $this->uploadFile($request->validated(['image']));
         }
 
-        $article->save();        
+        $this->articleModel->save();
         return redirect()->back();
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Model\Article  $article
-     * @return \Illuminate\Http\Response
+     * @param $id
+     * @return Response
      */
-    public function destroy($id)
-    {
-        if($article){
-            if(file_exists(public_path($article->image))){
-                unlink(public_path($article->image));
+    public function destroy($id)    {
+
+        if ($this->articleModel) {
+            if (file_exists(public_path($this->articleModel->image))) {
+                unlink(public_path($this->articleModel->image));
             }
 
-            $article->delete();            
+            $this->articleModel->delete();
         }
 
         return redirect()->back();

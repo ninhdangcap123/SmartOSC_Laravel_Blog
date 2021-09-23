@@ -6,7 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 
-class Article extends Model 
+class Article extends Model
 {
     protected $guarded = ['created_at', 'updated_at'];
 
@@ -29,18 +29,15 @@ class Article extends Model
     }
     public function getArticlesByPaginate($params)
     {
-        $query = $this->orderBy('created_at', 'DESC')->paginate($params);
-        return $query;
+        return $this->orderBy('created_at', 'DESC')->paginate($params);
     }
     public function attachTagsToArticles($params)
     {
-        $attach = $this->tags()->attach($params);
-        return $attach;
+        return $this->tags()->attach($params);
     }
     public function syncTagsToArticles($params)
     {
-        $sync = $this->tags()->sync($params);
-        return $sync;
+        return $this->tags()->sync($params);
     }
 
 }

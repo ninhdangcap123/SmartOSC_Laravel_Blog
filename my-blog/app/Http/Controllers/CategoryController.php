@@ -2,60 +2,67 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CategoryStoreRequest;
+use App\Http\Requests\CategoryUpdateRequest;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Validation\ValidationException;
 use Session;
 use App\Models\Category;
 use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
+    private $categoryModel;
+
+    public function __construct(Category $category)
+    {
+        $this->categoryModel = $category;
+    }
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
-        $categories = Category::getCategoryByPaginate(20);
+        $categories = (new \App\Models\Category)->getCategoryByPaginate(20);
         return view('admin.category.index', compact('categories'));
     }
 
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
+     * @throws ValidationException
      */
     public function create()
     {
-        $this->validate($request, [
-            'name' => 'required|unique:categories,name',
-        ]);
+        return view('admin.category.create');
 
-        $category = Category::create([
-            'name' => $request->name,
-            'slug' => Str::slug($request->name, '-'),
-            'description' => $request->description,
-        ]);
-        
-        return redirect()->back();
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param CategoryStoreRequest $request
+     * @return Response
      */
-    public function store(Request $request)
+    public function store(CategoryStoreRequest $request)
     {
-        //
+        $this->categoryModel->create($request->validated(), [
+            'slug' => Str::slug($request->name, '-'),
+            'description' => $request->description,
+        ]);
+
+        return redirect()->back();
     }
 
     /**
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function show($id)
     {
@@ -66,7 +73,7 @@ class CategoryController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function edit($id)
     {
@@ -76,21 +83,20 @@ class CategoryController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @param CategoryUpdateRequest $request
+     * @param int $id
+     * @return Response
      */
-    public function update(Request $request, $id)
+    public function update(CategoryUpdateRequest $request, $id)
     {
-        $this->validate($request, [
-            'name' => "required|unique:categories,name,$category->id",
+
+        $this->categoryModel->create($request->validated(),[
+            'slug' => Str::slug($request->name, '-'),
+            'description' => $request->description,
         ]);
 
-        $category->name = $request->name;
-        $category->slug = Str::slug($request->name, '-');
-        $category->description = $request->description;
-        $category->save();
-        
+        $this->categoryModel->save();
+
         return redirect()->back();
     }
 
@@ -98,19 +104,14 @@ class CategoryController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function destroy($id)
     {
-        $this->validate($request, [
-            'name' => "required|unique:categories,name,$category->id",
-        ]);
+        if($this->categoryModel){
+            $this->categoryModel->delete();
 
-        $category->name = $request->name;
-        $category->slug = Str::slug($request->name, '-');
-        $category->description = $request->description;
-        $category->save();
-        
-        return redirect()->back();
+            return redirect()->route('category.index');
+    }
     }
 }

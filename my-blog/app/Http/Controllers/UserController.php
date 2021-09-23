@@ -2,12 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UsersProfileUpdateRequest;
+use App\Http\Requests\UsersStoreRequest;
+use App\Http\Requests\UsersUpdateRequest;
 use App\Models\User;
 use Session;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
+    private $userModel;
+
+    public function __construct(User $user)
+    {
+        $this->userModel = $user;
+    }
     public function index(){
         $users = User::latest()->getUsersByPaginate(20);
         return view('admin.user.index', compact('users'));
@@ -17,20 +26,15 @@ class UserController extends Controller
         return view('admin.user.create');
     }
 
-    public function store(Request $request){
-        $this->validate($request, [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:8',
+    public function store(UsersStoreRequest $request){
+
+
+        $this->userModel->create($request->validated(), [
+
+            'password' => bcrypt($request->password),
+
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-            'description' => $request->description,
-        ]);
-        
         return redirect()->back();
     }
 
@@ -38,25 +42,20 @@ class UserController extends Controller
         return view('admin.user.edit', compact('user'));
     }
 
-    public function update(Request $request, $id){
-        $this->validate($request, [
-            'name' => 'required|string|max:255',
-            'email' => "required|email|unique:users,email, $user->id",
-            'password' => 'sometimes|nullable|min:8',
+    public function update(UsersUpdateRequest $request, $id){
+
+        $this->userModel->create($request->validated(), [
+            'password' => bcrypt($request->password),
         ]);
 
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->password = bcrypt($request->password);
-        $user->description = $request->description;
-        $user->save();
-        
+        $this->userModel->save();
+
         return redirect()->back();
     }
 
     public function destroy($id){
-        if($user){
-            $user->delete();            
+        if($this->userModel){
+            $this->userModel->delete();
         }
         return redirect()->back();
     }
@@ -66,29 +65,20 @@ class UserController extends Controller
         return view('admin.user.profile', compact('user'));
     }
 
-    public function profile_update(Request $request){
-        $user = auth()->user();
+    public function profile_update(UsersProfileUpdateRequest $request){
 
-        $this->validate($request, [
-            'name' => 'required|string|max:255',
-            'email' => "required|email|unique:users,email, $user->id",
-            'password' => 'sometimes|nullable|min:8',
-            'image'=> 'sometimes|nullable|image|max:2048',
-        ]);
 
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->description = $request->description;
+        $this->userModel->create($request->validated());
 
         if($request->has('password') && $request->password !== null){
-            $user->password = bcrypt($request->password);
+            $this->userModel->password = bcrypt($request->password);
         }
 
         if($request->hasFile('image')){
-            
-            $user->image = Storage::putFile('image', $request->file('image'));
+
+            $this->userModel->uploadFile($request->validated(['image']));
         }
-        $user->save();        
+        $this->userModel->save();
         return redirect()->back();
     }
 }

@@ -2,10 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\TagsStoreRequest;
+use App\Http\Requests\TagsUpdateRequest;
+use App\Models\Tags;
 use Illuminate\Http\Request;
 
 class TagsController extends Controller
 {
+    private $tagModel;
+
+    public function __construct(Tags $tag)
+    {
+        $this->tagModel = $tag;
+    }
     /**
      * Display a listing of the resource.
      *
@@ -13,7 +22,7 @@ class TagsController extends Controller
      */
     public function index()
     {
-        $tags = Tag::getTagsByPaginate(20);
+        $tags = (new \App\Models\Tags)->getTagsByPaginate(20);
         return view('admin.tag.index', compact('tags'));
     }
 
@@ -30,21 +39,18 @@ class TagsController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
+     * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request)
+    public function store(TagsStoreRequest $request)
     {
-        $this->validate($request, [
-            'name' => 'required|unique:tags,name',
-        ]);
 
-        $tag = Tag::create([
-            'name' => $request->name,
+        $this->tagModel->create($request->validated(), [
             'slug' => Str::slug($request->name, '-'),
             'description' => $request->description,
         ]);
-        
+
         return redirect()->back();
     }
 
@@ -73,21 +79,22 @@ class TagsController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
      * @return \Illuminate\Http\Response
+     * @throws \Illuminate\Validation\ValidationException
      */
-    public function update(Request $request, $id)
+    public function update(TagsUpdateRequest $request, $id)
     {
-        $this->validate($request, [
-            'name' => "required|unique:tags,name,$tag->name",
+
+        $this->tagModel->create($request->validated(), [
+            'slug' => Str::slug($request->name, '-'),
+            'description' => $request->description,
         ]);
 
-        $tag->name = $request->name;
-        $tag->slug = Str::slug($request->name, '-');
-        $tag->description = $request->description;
-        $tag->save();
-        
+
+        $this->tagModel->save();
+
         return redirect()->back();
     }
 
@@ -99,8 +106,8 @@ class TagsController extends Controller
      */
     public function destroy($id)
     {
-        if($tag){
-            $tag->delete();            
+        if($this->tagModel){
+            $this->tagModel->delete();
         }
 
         return redirect()->back();
