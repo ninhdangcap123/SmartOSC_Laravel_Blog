@@ -25,6 +25,7 @@ class TagsStoreRequest extends FormRequest
     {
         return [
             'name' => 'required|unique:tags,name',
+
         ];
     }
 }

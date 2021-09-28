@@ -8,6 +8,7 @@ use App\Http\Requests\UsersUpdateRequest;
 use App\Models\User;
 use Session;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class UserController extends Controller
 {
@@ -18,7 +19,7 @@ class UserController extends Controller
         $this->userModel = $user;
     }
     public function index(){
-        $users = User::latest()->getUsersByPaginate(20);
+        $users = (new \App\Models\User)->getUsersByPaginate(20);
         return view('admin.user.index', compact('users'));
     }
 
@@ -39,6 +40,7 @@ class UserController extends Controller
     }
 
     public function edit($id){
+        $user = auth()->user();
         return view('admin.user.edit', compact('user'));
     }
 
@@ -70,15 +72,10 @@ class UserController extends Controller
 
         $this->userModel->create($request->validated());
 
-        if($request->has('password') && $request->password !== null){
-            $this->userModel->password = bcrypt($request->password);
-        }
-
         if($request->hasFile('image')){
 
-            $this->userModel->uploadFile($request->validated(['image']));
+            $this->userModel->uploadFile($request->validated());
         }
-        $this->userModel->save();
         return redirect()->back();
     }
 }

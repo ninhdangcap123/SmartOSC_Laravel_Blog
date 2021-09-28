@@ -31,4 +31,15 @@ class UsersProfileUpdateRequest extends FormRequest
             'image'=> 'sometimes|nullable|image|max:2048',
         ];
     }
+
+    public function validated()
+    {
+        $data = $this->validator->validated();
+
+        if(isset($data['passsword']) && $data['password'] != ''){
+            $data['password'] = bcrypt($data['password']);
+        }
+
+        return $data;
+    }
 }

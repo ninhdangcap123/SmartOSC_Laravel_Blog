@@ -44,7 +44,7 @@ class User extends Authenticatable
 
     public function getUsersByPaginate($params)
     {
-        return $this->orderBy('created_at', 'DESC')->paginate($params);
+        return $this->latest()->paginate($params);
 
     }
 

@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ArticlesStoreRequest;
 use App\Http\Requests\ArticlesUpdateRequest;
 use App\Models\Article;
-use App\Models\Category;
-use App\Models\Tags;
 use Carbon\Carbon;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
@@ -29,7 +27,7 @@ class ArticleController extends Controller
      */
     public function index()
     {
-        $articles = (new \App\Models\Article)->getArticlesByPaginate(20);
+        $articles = (new Article)->getArticlesByPaginate(20);
         return view('admin.article.index', compact('articles'));
     }
 
@@ -53,7 +51,7 @@ class ArticleController extends Controller
      */
     public function store(ArticlesStoreRequest $request)
     {
-        $this->articleModel->create( $request->validated(), [
+        $this->articleModel->create($request->validated(), [
             'slug' => Str::slug($request->title),
             'user_id' => auth()->user()->id,
             'published_at' => Carbon::now(),
@@ -84,7 +82,7 @@ class ArticleController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param $id
-     * @return Response
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|Response
      */
     public function edit($id)
     {
@@ -94,11 +92,31 @@ class ArticleController extends Controller
     }
 
     /**
+     * Remove the specified resource from storage.
+     *
+     * @param $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroy($id)
+    {
+
+        if ($this->articleModel) {
+            if (file_exists(public_path($this->articleModel->image))) {
+                unlink(public_path($this->articleModel->image));
+            }
+
+            $this->articleModel->delete();
+        }
+
+        return redirect()->back();
+    }
+
+    /**
      * Update the specified resource in storage.
      * @paraw int $id
      * @param ArticlesUpdateRequest $request
      * @param $id
-     * @return Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     protected function update(ArticlesUpdateRequest $request, $id)
     {
@@ -113,25 +131,6 @@ class ArticleController extends Controller
         }
 
         $this->articleModel->save();
-        return redirect()->back();
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param $id
-     * @return Response
-     */
-    public function destroy($id)    {
-
-        if ($this->articleModel) {
-            if (file_exists(public_path($this->articleModel->image))) {
-                unlink(public_path($this->articleModel->image));
-            }
-
-            $this->articleModel->delete();
-        }
-
         return redirect()->back();
     }
 }
