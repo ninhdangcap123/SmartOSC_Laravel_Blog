@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UsersProfileUpdateRequest extends FormRequest
+class UpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -28,18 +28,6 @@ class UsersProfileUpdateRequest extends FormRequest
             'name' => 'required|string|max:255',
             'email' => "required|email|unique:users,email, $user->id",
             'password' => 'sometimes|nullable|min:8',
-            'image'=> 'sometimes|nullable|image|max:2048',
         ];
-    }
-
-    public function validated()
-    {
-        $data = $this->validator->validated();
-
-        if(isset($data['passsword']) && $data['password'] != ''){
-            $data['password'] = bcrypt($data['password']);
-        }
-
-        return $data;
     }
 }
