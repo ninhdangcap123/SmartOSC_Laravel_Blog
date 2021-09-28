@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ArticlesStoreRequest;
-use App\Http\Requests\ArticlesUpdateRequest;
+use App\Http\Requests\StoreRequest;
+use App\Http\Requests\UpdateRequest;
 use App\Models\Article;
 use Carbon\Carbon;
 use Illuminate\Http\Response;
@@ -46,10 +46,10 @@ class ArticleController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param ArticlesStoreRequest $request
+     * @param StoreRequest $request
      * @return Response
      */
-    public function store(ArticlesStoreRequest $request)
+    public function store(StoreRequest $request)
     {
         $this->articleModel->create($request->validated(), [
             'slug' => Str::slug($request->title),
@@ -114,11 +114,11 @@ class ArticleController extends Controller
     /**
      * Update the specified resource in storage.
      * @paraw int $id
-     * @param ArticlesUpdateRequest $request
+     * @param UpdateRequest $request
      * @param $id
      * @return \Illuminate\Http\RedirectResponse
      */
-    protected function update(ArticlesUpdateRequest $request, $id)
+    protected function update(UpdateRequest $request, $id)
     {
 
         $this->articleModel->create($request->validated());

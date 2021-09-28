@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class TagsUpdateRequest extends FormRequest
+class StoreRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,7 +24,8 @@ class TagsUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => "required|unique:tags,name",
+            'name' => 'required|unique:tags,name',
+
         ];
     }
 }

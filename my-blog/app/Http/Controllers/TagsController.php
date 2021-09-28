@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\TagsStoreRequest;
-use App\Http\Requests\TagsUpdateRequest;
+use App\Http\Requests\StoreRequest;
+use App\Http\Requests\UpdateRequest;
 use App\Models\Tags;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -40,11 +40,10 @@ class TagsController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param StoreRequest $request
      * @return \Illuminate\Http\Response
-     * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(TagsStoreRequest $request)
+    public function store(StoreRequest $request)
     {
 
         $this->tagModel->create($request->validated(), [
@@ -85,7 +84,7 @@ class TagsController extends Controller
      * @return \Illuminate\Http\Response
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function update(TagsUpdateRequest $request, $id)
+    public function update(UpdateRequest $request, $id)
     {
 
         $this->tagModel->create($request->validated(), [

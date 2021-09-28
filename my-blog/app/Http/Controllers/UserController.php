@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\UsersProfileUpdateRequest;
-use App\Http\Requests\UsersStoreRequest;
-use App\Http\Requests\UsersUpdateRequest;
+use App\Http\Requests\ProfileUpdateRequest;
+use App\Http\Requests\StoreRequest;
+use App\Http\Requests\UpdateRequest;
 use App\Models\User;
 use Session;
 use Illuminate\Http\Request;
@@ -27,7 +27,7 @@ class UserController extends Controller
         return view('admin.user.create');
     }
 
-    public function store(UsersStoreRequest $request){
+    public function store(StoreRequest $request){
 
 
         $this->userModel->create($request->validated(), [
@@ -44,7 +44,7 @@ class UserController extends Controller
         return view('admin.user.edit', compact('user'));
     }
 
-    public function update(UsersUpdateRequest $request, $id){
+    public function update(UpdateRequest $request, $id){
 
         $this->userModel->create($request->validated(), [
             'password' => bcrypt($request->password),
@@ -67,7 +67,7 @@ class UserController extends Controller
         return view('admin.user.profile', compact('user'));
     }
 
-    public function profile_update(UsersProfileUpdateRequest $request){
+    public function profileUpdate(ProfileUpdateRequest $request){
 
 
         $this->userModel->create($request->validated());

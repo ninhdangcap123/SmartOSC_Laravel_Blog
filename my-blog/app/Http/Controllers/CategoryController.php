@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\CategoryStoreRequest;
-use App\Http\Requests\CategoryUpdateRequest;
+use App\Http\Requests\StoreRequest;
+use App\Http\Requests\UpdateRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
@@ -45,10 +45,10 @@ class CategoryController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param CategoryStoreRequest $request
+     * @param StoreRequest $request
      * @return Response
      */
-    public function store(CategoryStoreRequest $request)
+    public function store(StoreRequest $request)
     {
         $this->categoryModel->create($request->validated(), [
             'slug' => Str::slug($request->name, '-'),
@@ -83,11 +83,11 @@ class CategoryController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param CategoryUpdateRequest $request
+     * @param UpdateRequest $request
      * @param int $id
      * @return Response
      */
-    public function update(CategoryUpdateRequest $request, $id)
+    public function update(UpdateRequest $request, $id)
     {
 
         $this->categoryModel->create($request->validated(),[
