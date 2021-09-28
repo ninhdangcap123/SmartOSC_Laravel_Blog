@@ -6,6 +6,7 @@ use App\Http\Requests\TagsStoreRequest;
 use App\Http\Requests\TagsUpdateRequest;
 use App\Models\Tags;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class TagsController extends Controller
 {
@@ -69,7 +70,7 @@ class TagsController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|Response
      */
     public function edit($id)
     {
